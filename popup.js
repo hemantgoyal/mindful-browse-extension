@@ -14,6 +14,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set up event listeners
     document.getElementById('take-break-btn').addEventListener('click', suggestBreak);
     document.getElementById('focus-mode-btn').addEventListener('click', toggleFocusMode);
+    document.getElementById('export-btn').addEventListener('click', exportData);
+    document.getElementById('import-btn').addEventListener('click', () => {
+        document.getElementById('import-input').click();
+    });
+    document.getElementById('import-input').addEventListener('change', importData);
     
     // Refresh UI every 30 seconds
     setInterval(loadAndUpdateUI, 30000);
@@ -239,6 +244,50 @@ function updateWeeklyChart(weeklyStats) {
         
         chartContainer.appendChild(dayElement);
     });
+}
+
+// Data backup functionality
+function exportData() {
+    chrome.storage.local.get(null, (data) => {
+        const exportData = {
+            version: '1.0',
+            exportDate: new Date().toISOString(),
+            data: data
+        };
+        
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `mindful-browse-backup-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        
+        URL.revokeObjectURL(url);
+    });
+}
+
+function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const importData = JSON.parse(e.target.result);
+            
+            if (importData.version && importData.data) {
+                chrome.storage.local.set(importData.data, () => {
+                    alert('Data imported successfully! Please reload the extension.');
+                });
+            } else {
+                alert('Invalid backup file format.');
+            }
+        } catch (error) {
+            alert('Error importing data: ' + error.message);
+        }
+    };
+    reader.readAsText(file);
 }
 
 function getScoreColor(score) {

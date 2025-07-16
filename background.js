@@ -32,34 +32,71 @@ const WELLNESS_CATEGORIES = {
     }
 };
 
-// Initialize extension
-chrome.runtime.onInstalled.addListener(() => {
+// Initialize extension - preserve existing data
+chrome.runtime.onInstalled.addListener((details) => {
     const today = new Date().toDateString();
-    chrome.storage.local.set({
-        dailyData: {
-            date: today,
-            totalTime: 0,
-            wellnessScore: 75,
-            tabSwitches: 0,
-            sessions: [],
-            categoryBreakdown: {},
-            focusTime: 0,
-            distractionEvents: 0,
-            lastUpdate: Date.now(),
-            activeTab: null
-        },
-        weeklyStats: [],
-        settings: {
-            focusThreshold: 300000, // 5 minutes
-            notificationsEnabled: true,
-            wellnessGoal: 70
+    
+    // Get existing data first
+    chrome.storage.local.get(['dailyData', 'weeklyStats', 'settings'], (result) => {
+        const existingDailyData = result.dailyData || {};
+        const existingWeeklyStats = result.weeklyStats || [];
+        const existingSettings = result.settings || {};
+        
+        // Only initialize if this is a fresh install or if data is missing
+        const isNewInstall = details.reason === 'install';
+        const needsDataInit = !existingDailyData.date;
+        
+        if (isNewInstall || needsDataInit) {
+            // Initialize default data structure
+            const defaultDailyData = {
+                date: today,
+                totalTime: 0,
+                wellnessScore: 75,
+                tabSwitches: 0,
+                sessions: [],
+                categoryBreakdown: {},
+                focusTime: 0,
+                distractionEvents: 0,
+                lastUpdate: Date.now(),
+                activeTab: null
+            };
+            
+            const defaultSettings = {
+                focusThreshold: 300000, // 5 minutes
+                notificationsEnabled: true,
+                wellnessGoal: 70
+            };
+            
+            // Merge with existing data, preserving what exists
+            const dailyData = { ...defaultDailyData, ...existingDailyData };
+            const settings = { ...defaultSettings, ...existingSettings };
+            
+            chrome.storage.local.set({
+                dailyData: dailyData,
+                weeklyStats: existingWeeklyStats,
+                settings: settings
+            });
+        } else {
+            // Check if we need to reset for a new day
+            if (existingDailyData.date !== today) {
+                resetDailyData();
+            }
+            
+            // Handle extension updates - migrate data if needed
+            if (details.reason === 'update') {
+                migrateDataIfNeeded(existingDailyData, existingSettings);
+            }
         }
     });
     
-    // Set daily reset alarm
-    chrome.alarms.create('dailyReset', {
-        when: getNextMidnight(),
-        periodInMinutes: 1440 // 24 hours
+    // Set daily reset alarm (only if not already set)
+    chrome.alarms.get('dailyReset', (alarm) => {
+        if (!alarm) {
+            chrome.alarms.create('dailyReset', {
+                when: getNextMidnight(),
+                periodInMinutes: 1440 // 24 hours
+            });
+        }
     });
 });
 
@@ -292,6 +329,50 @@ function resetDailyData() {
             weeklyStats: weeklyStats
         });
     });
+}
+
+function migrateDataIfNeeded(dailyData, settings) {
+    let needsUpdate = false;
+    let updatedData = { ...dailyData };
+    let updatedSettings = { ...settings };
+    
+    // Add any missing fields to existing data
+    const requiredFields = {
+        contentAnalysis: [],
+        distractionEvents: 0,
+        focusTime: 0,
+        sessions: [],
+        categoryBreakdown: {}
+    };
+    
+    for (const [field, defaultValue] of Object.entries(requiredFields)) {
+        if (!(field in updatedData)) {
+            updatedData[field] = defaultValue;
+            needsUpdate = true;
+        }
+    }
+    
+    // Add any missing settings
+    const requiredSettings = {
+        focusThreshold: 300000,
+        notificationsEnabled: true,
+        wellnessGoal: 70
+    };
+    
+    for (const [setting, defaultValue] of Object.entries(requiredSettings)) {
+        if (!(setting in updatedSettings)) {
+            updatedSettings[setting] = defaultValue;
+            needsUpdate = true;
+        }
+    }
+    
+    // Save updated data if changes were made
+    if (needsUpdate) {
+        chrome.storage.local.set({
+            dailyData: updatedData,
+            settings: updatedSettings
+        });
+    }
 }
 
 function getNextMidnight() {

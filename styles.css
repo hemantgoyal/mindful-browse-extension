@@ -262,6 +262,14 @@ body {
     margin-top: 16px;
 }
 
+.data-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #e2e8f0;
+}
+
 .action-btn {
     flex: 1;
     padding: 10px 12px;
@@ -281,6 +289,28 @@ body {
 
 .action-btn:active {
     transform: translateY(0);
+}
+
+.data-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: white;
+    color: #374151;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.data-btn:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+}
+
+.data-btn:active {
+    transform: translateY(1px);
 }
 
 .no-data {
