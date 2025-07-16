@@ -85,7 +85,11 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 // Handle messages from content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'page_activity') {
-        updatePageActivity(message.url, message.time);
+        updatePageActivity(message.url, message.time, message.engagement);
+    } else if (message.type === 'content_analysis') {
+        storeContentAnalysis(message.url, message.title, message.analysis);
+    } else if (message.type === 'distraction_detected') {
+        handleDistraction(message.url, message.title);
     }
 });
 
@@ -122,7 +126,7 @@ function updateActiveTab(tabId, url = null) {
     });
 }
 
-function updatePageActivity(url, timeSpent) {
+function updatePageActivity(url, timeSpent, engagement) {
     chrome.storage.local.get(['dailyData'], (result) => {
         let data = result.dailyData || {};
         const category = categorizeWebsite(url);
@@ -138,16 +142,67 @@ function updatePageActivity(url, timeSpent) {
             data.focusTime = (data.focusTime || 0) + timeSpent;
         }
         
-        // Add session record
+        // Add session record with engagement data
         if (!data.sessions) data.sessions = [];
         data.sessions.push({
             url: url,
             category: category,
             timeSpent: timeSpent,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            engagement: engagement || {}
         });
         
         data.lastUpdate = Date.now();
+        chrome.storage.local.set({ dailyData: data });
+        calculateWellnessScore();
+    });
+}
+
+function storeContentAnalysis(url, title, analysis) {
+    chrome.storage.local.get(['dailyData'], (result) => {
+        let data = result.dailyData || {};
+        
+        // Store content analysis
+        if (!data.contentAnalysis) data.contentAnalysis = [];
+        data.contentAnalysis.push({
+            url: url,
+            title: title,
+            analysis: analysis,
+            timestamp: Date.now()
+        });
+        
+        // Keep only last 100 analyses to prevent storage bloat
+        if (data.contentAnalysis.length > 100) {
+            data.contentAnalysis = data.contentAnalysis.slice(-100);
+        }
+        
+        // Update wellness score based on content type
+        if (analysis.isDistraction) {
+            data.distractionEvents = (data.distractionEvents || 0) + 1;
+        }
+        
+        chrome.storage.local.set({ dailyData: data });
+        calculateWellnessScore();
+    });
+}
+
+function handleDistraction(url, title) {
+    chrome.storage.local.get(['dailyData', 'settings'], (result) => {
+        let data = result.dailyData || {};
+        let settings = result.settings || {};
+        
+        data.distractionEvents = (data.distractionEvents || 0) + 1;
+        
+        // Show notification if enabled
+        if (settings.notificationsEnabled) {
+            chrome.notifications.create({
+                type: 'basic',
+                iconUrl: 'icons/icon48.png',
+                title: 'Mindful Browsing',
+                message: 'You\'re viewing potentially distracting content. Consider your wellness goals.'
+            });
+        }
+        
         chrome.storage.local.set({ dailyData: data });
         calculateWellnessScore();
     });

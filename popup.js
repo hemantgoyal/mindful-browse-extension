@@ -9,6 +9,7 @@ const WELLNESS_CATEGORIES = {
 
 document.addEventListener('DOMContentLoaded', function() {
     loadAndUpdateUI();
+    updateFocusModeButton();
     
     // Set up event listeners
     document.getElementById('take-break-btn').addEventListener('click', suggestBreak);
@@ -261,7 +262,78 @@ function suggestBreak() {
 }
 
 function toggleFocusMode() {
-    // This could be expanded to implement actual focus mode functionality
-    // For now, just show a notification
-    alert('Focus Mode activated! 🎯\n\nMinimize distractions and focus on your most important tasks.');
+    chrome.storage.local.get(['focusMode'], (result) => {
+        const currentMode = result.focusMode || false;
+        const newMode = !currentMode;
+        
+        // Update storage
+        chrome.storage.local.set({ focusMode: newMode });
+        
+        // Update button text
+        const button = document.getElementById('focus-mode-btn');
+        button.textContent = newMode ? 'Exit Focus Mode' : 'Focus Mode';
+        button.style.background = newMode ? 
+            'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' : 
+            'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        
+        // Notify all tabs about focus mode change
+        chrome.tabs.query({}, (tabs) => {
+            tabs.forEach(tab => {
+                chrome.tabs.sendMessage(tab.id, {
+                    type: 'focus_mode_changed',
+                    enabled: newMode
+                }).catch(() => {
+                    // Ignore errors for tabs that don't have content script
+                });
+            });
+        });
+        
+        // Show feedback
+        if (newMode) {
+            showFocusNotification('Focus Mode Activated! 🎯\n\nDistracting sites will be blocked.');
+        } else {
+            showFocusNotification('Focus Mode Deactivated\n\nAll sites are now accessible.');
+        }
+    });
+}
+
+function showFocusNotification(message) {
+    // Create temporary notification
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #22c55e;
+        color: white;
+        padding: 16px;
+        border-radius: 8px;
+        z-index: 1000;
+        font-size: 14px;
+        max-width: 300px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    `;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Update focus mode button state on load
+function updateFocusModeButton() {
+    chrome.storage.local.get(['focusMode'], (result) => {
+        const focusMode = result.focusMode || false;
+        const button = document.getElementById('focus-mode-btn');
+        
+        if (button) {
+            button.textContent = focusMode ? 'Exit Focus Mode' : 'Focus Mode';
+            button.style.background = focusMode ? 
+                'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)' : 
+                'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        }
+    });
 }
