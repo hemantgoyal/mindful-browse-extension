@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set up event listeners
     document.getElementById('take-break-btn').addEventListener('click', suggestBreak);
     document.getElementById('focus-mode-btn').addEventListener('click', toggleFocusMode);
+    document.getElementById('detailed-analytics-btn').addEventListener('click', openDetailedAnalytics);
     document.getElementById('export-btn').addEventListener('click', exportData);
     document.getElementById('import-btn').addEventListener('click', () => {
         document.getElementById('import-input').click();
@@ -370,6 +371,10 @@ function showFocusNotification(message) {
     setTimeout(() => {
         notification.remove();
     }, 3000);
+}
+
+function openDetailedAnalytics() {
+    chrome.tabs.create({ url: chrome.runtime.getURL('analytics.html') });
 }
 
 // Update focus mode button state on load

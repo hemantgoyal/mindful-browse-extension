@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>MindfulBrowse - Detailed Analytics</title>
+    <link rel="stylesheet" href="analytics.css">
+</head>
+<body>
+    <div class="analytics-container">
+        <div class="header">
+            <div class="header-content">
+                <h1>🧠 MindfulBrowse Analytics</h1>
+                <p>Deep insights into your digital wellness and browsing patterns</p>
+            </div>
+            <div class="date-selector">
+                <select id="date-range">
+                    <option value="today">Today</option>
+                    <option value="week">Past Week</option>
+                    <option value="month">Past Month</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="stats-overview">
+            <div class="stat-card wellness-card">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="wellness-score">75</div>
+                    <div class="stat-label">Wellness Score</div>
+                    <div class="stat-change" id="wellness-change">+5 from yesterday</div>
+                </div>
+            </div>
+            <div class="stat-card time-card">
+                <div class="stat-icon">⏰</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="total-time">0h 0m</div>
+                    <div class="stat-label">Total Browsing</div>
+                    <div class="stat-change" id="time-change">-15m from yesterday</div>
+                </div>
+            </div>
+            <div class="stat-card focus-card">
+                <div class="stat-icon">🔥</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="focus-time">0h 0m</div>
+                    <div class="stat-label">Focus Time</div>
+                    <div class="stat-change" id="focus-change">+30m from yesterday</div>
+                </div>
+            </div>
+            <div class="stat-card distraction-card">
+                <div class="stat-icon">⚡</div>
+                <div class="stat-content">
+                    <div class="stat-value" id="distractions">0</div>
+                    <div class="stat-label">Distractions</div>
+                    <div class="stat-change" id="distraction-change">-3 from yesterday</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="analytics-grid">
+            <div class="chart-section">
+                <div class="section-header">
+                    <h2>Top Websites by Time</h2>
+                    <p>Where you spend your digital time</p>
+                </div>
+                <div class="website-breakdown" id="website-breakdown">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="chart-section">
+                <div class="section-header">
+                    <h2>Content Type Analysis</h2>
+                    <p>What kind of content you consume</p>
+                </div>
+                <div class="content-chart" id="content-chart">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <div class="analytics-grid">
+            <div class="chart-section">
+                <div class="section-header">
+                    <h2>Hourly Activity Pattern</h2>
+                    <p>Your browsing rhythm throughout the day</p>
+                </div>
+                <div class="hourly-chart" id="hourly-chart">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="chart-section">
+                <div class="section-header">
+                    <h2>Sentiment Analysis</h2>
+                    <p>Emotional tone of content consumed</p>
+                </div>
+                <div class="sentiment-chart" id="sentiment-chart">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <div class="detailed-sessions">
+            <div class="section-header">
+                <h2>Detailed Browsing Sessions</h2>
+                <p>Complete timeline of your digital activities</p>
+            </div>
+            <div class="session-list" id="session-list">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+
+        <div class="insights-recommendations">
+            <div class="section-header">
+                <h2>Personalized Insights & Recommendations</h2>
+                <p>AI-powered suggestions for better digital wellness</p>
+            </div>
+            <div class="insights-grid" id="insights-grid">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+
+        <div class="weekly-progress">
+            <div class="section-header">
+                <h2>Weekly Progress</h2>
+                <p>Your digital wellness journey over time</p>
+            </div>
+            <div class="progress-chart" id="progress-chart">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script src="analytics.js"></script>
+</body>
+</html>

@@ -257,9 +257,15 @@ body {
 }
 
 .actions {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 8px;
     margin-top: 16px;
+}
+
+.analytics-btn {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
 }
 
 .data-actions {
